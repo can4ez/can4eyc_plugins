@@ -1,0 +1,5 @@
+*.smx
+/.*/ 
+#/compiled/*
+*.dat
+*.log
