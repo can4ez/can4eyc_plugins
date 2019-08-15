@@ -43,7 +43,7 @@ public void OnMapStart() {
 }
 
 public Action OnNormalSound(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed) {
-	if (StrContains(soundEntry, "Step") == -1) {
+	if (StrContains(sample, "music") != -1) {
 		for (int x = 0; x < numClients; x++) {
 			PrintToConsole(clients[x], "clients[x]>> %i", clients[x]);
 			PrintToConsole(clients[x], "sample>> %s", sample);
@@ -58,9 +58,12 @@ public Action OnNormalSound(int clients[MAXPLAYERS], int &numClients, char sampl
 			PrintToConsole(clients[x], "seed>> %i", seed);
 		}
 	}
-	if (StrContains(soundEntry, "Music.") != -1) {
+	if (StrContains(sample, "music") != -1) {
 		
-		EmitSoundEntry(clients, numClients, "Music.StopAllMusic", "common/null.wav", entity);
+		for (int x = 0; x < numClients; x++) {
+		PrintToConsole(clients[x], "[BLOCKED] soundEntry>> %s", soundEntry);
+			ClientCommand(clients[x], "playgamesound Music.StopAllMusic");
+		}
 		/*	soundEntry>> Music.GG_Dominating
 numClients>> 1
 entity>> 3
