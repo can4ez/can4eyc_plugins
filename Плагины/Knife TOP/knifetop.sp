@@ -87,6 +87,7 @@ Issues
 #pragma semicolon 1
 
 #include <sourcemod>
+#include <morecolors>
 #include "knifetop\include\knifetop.inc"
 
 #define KNIFETOP_VERSION "1.2.4"
@@ -98,6 +99,9 @@ new String:g_sql_saveplayer[]   =
 "UPDATE knifetop SET score = %i, kills = %i, deaths = %i, name = '%s', last_connect = current_timestamp WHERE steamid = '%s'";
 
 new String:g_sql_myplace[]   = 
+"SELECT COUNT(*) as count FROM knifetop WHERE (kills or deaths) and score > %i";
+
+new String:g_sql_myRank[]   = 
 "SELECT COUNT(*) as count FROM knifetop WHERE (kills or deaths) and score > %i";
 
 new String:g_sql_createplayer[] = 
@@ -151,6 +155,7 @@ new Float:PlayerAfk[MAXPLAYERS + 1][3];
 
 #include "knifetop\commands\ktop.sp"
 #include "knifetop\commands\kme.sp"
+#include "knifetop\commands\krank.sp"
 
 public Plugin:myinfo = 
 {
@@ -335,9 +340,10 @@ public Action:ConCmd_Say(userid, args)
 		startidx = 1;
 	}
 	
-	if(strcmp(text[startidx], "!ktop", false) == 0)
+	if( strcmp(text[startidx], "!ktop", false) == 0 || strcmp(text[startidx], "ktop", false) == 0)
 	{
 		PrintTop(userid);
+	return Plugin_Continue;
 	}
 
 	if(strcmp(text[startidx], "!kbot", false) == 0)
@@ -352,11 +358,19 @@ public Action:ConCmd_Say(userid, args)
 			start = g_player_count - 9;
 		}
 		PrintTop(userid, start);
+	return Plugin_Continue;
 	}
 	
-	if(strcmp(text[startidx], "!kme", false) == 0)
+	if(strcmp(text[startidx], "!kme", false) == 0 || strcmp(text[startidx], "kme", false) == 0)
 	{
 		PrintMyPlace(userid);
+	return Plugin_Continue;
+	}
+	
+	if(strcmp(text[startidx], "!krank", false) == 0 || strcmp(text[startidx], "krank", false) == 0)
+	{
+		PrintMyRank(userid);
+	return Plugin_Continue;
 	}
 
 	return Plugin_Continue;
