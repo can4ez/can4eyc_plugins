@@ -47,7 +47,7 @@ public GetPlayerPlaceCallback(const String:name[], const String:steamid[], any:s
 {
 	new client = data;
 	new Handle:panel = CreatePanel();
-	DrawPanelText(panel, "KnifeTop: My statistics");
+	DrawPanelText(panel, "KnifeTop: Личная статистика");
 	DrawPanelText(panel, "---------------------------------");
 	new String:text[256];
 	if ( g_kills[client] || g_deaths[client] )
@@ -59,17 +59,17 @@ public GetPlayerPlaceCallback(const String:name[], const String:steamid[], any:s
 								   g_deaths[client]
 								   );
 		DrawPanelText(panel, text);
-		Format(text, sizeof(text), "Your place: %i of %i.", g_place[client], g_player_count);
+		Format(text, sizeof(text), "Ваша позиция: %i of %i.", g_place[client], g_player_count);
 		DrawPanelText(panel, text);
 	}
 	else
 	{
-		DrawPanelText(panel, "You have not ranked yet.");
-		Format(text, sizeof(text), "Total players ranked: %i.", g_player_count);
+		DrawPanelText(panel, "Ваш ранг еще недоступен.");
+		Format(text, sizeof(text), "Всего игроков в рейтинге: %i.", g_player_count);
 		DrawPanelText(panel, text);
 	}
 	DrawPanelText(panel, "---------------------------------");
-	DrawPanelItem(panel, "Exit");
+	DrawPanelItem(panel, "Выход");
 	SendPanelToClient(panel, client, MyPlaceHandler, 10);
 	CloseHandle(panel);
 }

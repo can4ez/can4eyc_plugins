@@ -13,11 +13,11 @@ PrintTop(client, start = 1, offset = 10)
 		{
 			offset = g_player_count;
 		}
-		Format(header, 128, "KnifeTop: Top %i of %i players", offset, g_player_count);
+		Format(header, 128, "KnifeTop: Топ %i из %i игроков", offset, g_player_count);
 	}
 	else
 	{
-		Format(header, 128, "KnifeTop: Worst %i of %i players", offset, g_player_count);
+		Format(header, 128, "KnifeTop: Худший %i из %i игроков", offset, g_player_count);
 	}
 	DrawPanelText(panel, header);
 	DrawPanelText(panel, "---------------------------------");
@@ -40,16 +40,16 @@ public TopCallback(const String:name[], const String:steamid[], any:stats[], any
     {
         if ( !g_player_count )
         {
-            DrawPanelText(panel, "No players found");
+            DrawPanelText(panel, "Игроки не найдены");
         }
         DrawPanelText(panel, "---------------------------------");
         if ( (start == 1) && g_player_count )
         {
-            DrawPanelText(panel, "1. Exit");
+            DrawPanelText(panel, "1. Выход");
         }
         else
         {
-            DrawPanelItem(panel, "Exit");
+            DrawPanelItem(panel, "Выход");
         }
         CloseHandle(pack);
         SendPanelToClient(panel, client, TopHandler, 10);

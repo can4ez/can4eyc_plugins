@@ -90,7 +90,7 @@ Issues
 #include <morecolors>
 #include "knifetop\include\knifetop.inc"
 
-#define KNIFETOP_VERSION "1.2.4"
+#define KNIFETOP_VERSION "1.2.4 & Edited by can4eyc | Саша Шеин  - vk.com/can4eyc"
 
 #define MAX_STEAMID_LENGTH     128
 #define MAX_WEAPON_NAME_LENGTH 32
@@ -408,21 +408,21 @@ public Action:AdminCmd_Purge(client, args)
 	
 	if(argCount != 1)
 	{
-		PrintToConsole(client, "KnifeTop: Invalid number of arguments for command 'sm_knifetop_purge'");
+		PrintToConsole(client, "KnifeTop: Недопустимое количество аргументов для команды 'sm_knifetop_purge'");
 		return Plugin_Handled;
 	}
 	
 	decl String:svDays[192];
 	if(!GetCmdArg(1, svDays, 192))
 	{
-		PrintToConsole(client, "KnifeTop: Invalid arguments for sm_knifetop_purge.");
+		PrintToConsole(client, "KnifeTop: Недопустимый аргумент для команды sm_knifetop_purge.");
 		return Plugin_Handled;
 	}
 	
 	new days = StringToInt(svDays);
 	if(days <= 0)
 	{
-		PrintToConsole(client, "KnifeTop: Invalid number of days.");
+		PrintToConsole(client, "KnifeTop: Недопустимое количество дней.");
 		return Plugin_Handled;
 	}
 
@@ -449,14 +449,14 @@ public Action:AdminCmd_Warmup(client, args)
 	
 	if(argCount != 1)
 	{
-		PrintToConsole(client, "KnifeTop: Invalid number of arguments for command 'sm_knifetop_warmup'");
+		PrintToConsole(client, "KnifeTop: Недопустимое количество аргументов для команды 'sm_knifetop_warmup'");
 		return Plugin_Handled;
 	}
 	
 	decl String:svSeconds[192];
 	if(!GetCmdArg(1, svSeconds, 192))
 	{
-		PrintToConsole(client, "KnifeTop: Invalid arguments for sm_knifetop_warmup.");
+		PrintToConsole(client, "KnifeTop: Недопустимые аргументы для sm_knifetop_warmup.");
 		return Plugin_Handled;
 	}
 	
@@ -471,16 +471,14 @@ public Action:AdminCmd_Warmup(client, args)
 	if(seconds <= 0)
 	{
 		g_iswarmup = false;
-		PrintToConsole(client, "KnifeTop: Warmup disabled.");
+		PrintToConsole(client, "KnifeTop: Разминка отключена.");
 		return Plugin_Handled;
 	}
 	else
 	{
 		g_iswarmup = true;
-		g_hwarmup_timer = CreateTimer(seconds, Timer_DisableWarmup);
-		new String:text[128];
-		Format(text, 128, "KnifeTop: Warmup enabled for %.0f seconds.", seconds);
-		PrintToConsole(client, text);
+		g_hwarmup_timer = CreateTimer(seconds, Timer_DisableWarmup); 
+		PrintToConsole(client, "KnifeTop: Разминка включена в %.0f секунд.", seconds);
 		return Plugin_Handled;
 	}    
 }
