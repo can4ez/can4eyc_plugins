@@ -7,8 +7,8 @@ set c = 0
 :: 'Blue','Green','Cyan','Red','Magenta','Yellow','White'
 
 for /f "tokens=1*delims=-" %%a in ('dir "Ïëàãèíû" /B') do ( 
-	del "Ïëàãèíû\%%a\*.smx" > nul 2>&1
-	del "Ïëàãèíû\%%a\*.log" > nul 2>&1
+	@del "Ïëàãèíû\%%a\*.smx" > nul 2>&1
+	@del "Ïëàãèíû\%%a\*.log" > nul 2>&1
 	
 	for /f "tokens=1*delims=-" %%b in ('dir "Ïëàãèíû\%%a\*.sp" /B') do ( 
 		if %%c == 1 ( call :EchoColor " %%a [%%b]" Yellow ) else ( echo  %%a [%%b]   )
@@ -28,7 +28,7 @@ for /f "tokens=1*delims=-" %%a in ('dir "Ïëàãèíû" /B') do (
 		 
 		 
 		:next 
-		del temp.txt  > nul 2>&1 
+		@del temp.txt  > nul 2>&1 
 	)
 )
 pause
