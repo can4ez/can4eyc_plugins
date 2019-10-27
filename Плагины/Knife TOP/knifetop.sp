@@ -206,8 +206,8 @@ public OnPluginStart()
 	g_player_count = GetPlayerCount();
 	SQL_UnlockDatabase(stats_db);
 	
-	g_henabled = CreateConVar("sm_knifetop_enabled", "1", "Sets whether or not to record stats",FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_hdebug = CreateConVar("sm_knifetop_debug", "0", "Enable debug output to sourcemod error log file.",FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_henabled = CreateConVar("sm_knifetop_enabled", "1", "Устанавливает, следует ли записывать статистику",FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_hdebug = CreateConVar("sm_knifetop_debug", "0", "Включите вывод отладки в файл журнала ошибок sourcemod.",FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_hversion = CreateConVar("sm_knifetop_version", KNIFETOP_VERSION,"KnifeTop version.", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	// KLUGE: Update version cvar if plugin updated on map change.
 	SetConVarString(g_hversion, KNIFETOP_VERSION);
@@ -225,9 +225,9 @@ public OnPluginStart()
 	
 	HookEvents();
 	
-	RegAdminCmd("sm_knifetop_reset", AdminCmd_ResetStats, ADMFLAG_CONFIG, "Resets knifetop stats.");
-	RegAdminCmd("sm_knifetop_purge", AdminCmd_Purge, ADMFLAG_CONFIG, "sm_knifetop_purge [days] - Purge players who haven't connected for [days] days.");
-	RegAdminCmd("sm_knifetop_warmup", AdminCmd_Warmup, ADMFLAG_CONFIG, "sm_knifetop_warmup [seconds] - Not count knife stats for [seconds] seconds.");
+	RegAdminCmd("sm_knifetop_reset", AdminCmd_ResetStats, ADMFLAG_CONFIG, "Сбрасывает статистику ножа.");
+	RegAdminCmd("sm_knifetop_purge", AdminCmd_Purge, ADMFLAG_CONFIG, "sm_knifetop_purge [days] - Очистка игроков, которые не подключались в течение [дней] дней.");
+	RegAdminCmd("sm_knifetop_warmup", AdminCmd_Warmup, ADMFLAG_CONFIG, "sm_knifetop_warmup [seconds] - Не считать статистику ножа в течение [секунд] секунд.");
 	RegConsoleCmd("say",      ConCmd_Say);
 	RegConsoleCmd("say_team", ConCmd_Say);
 	
@@ -346,7 +346,7 @@ public Action:ConCmd_Say(userid, args)
 	return Plugin_Continue;
 	}
 
-	if(strcmp(text[startidx], "!kbot", false) == 0)
+	if(strcmp(text[startidx], "!kbot", false) == 0 || strcmp(text[startidx], "kbot", false) == 0)
 	{
 		new start = 0;
 		if ( g_player_count < 11 )
