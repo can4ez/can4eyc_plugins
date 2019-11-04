@@ -9,9 +9,9 @@ PrintMyRank(client)
 
 public GetPlayerRank(client, StatsCallback:callback)
 {
-	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, _:callback);
-	WritePackCell(pack, client);
+	DataPack pack = new DataPack();
+	pack.WriteFunction(callback);
+	pack.WriteCell(client);
 	
 	new String:query[192];    
 	Format(query, sizeof(query), g_sql_myRank, g_score[client]);
@@ -20,9 +20,9 @@ public GetPlayerRank(client, StatsCallback:callback)
 
 public SQL_MyRankCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
 {
-	new Handle:pack = data;
+	DataPack pack = data;
 	ResetPack(pack);
-	new StatsCallback:callback = StatsCallback:ReadPackCell(pack);
+	new StatsCallback:callback = view_as<StatsCallback>(pack.ReadFunction());
 	new client = ReadPackCell(pack);
 	CloseHandle(pack);
 

@@ -1,9 +1,9 @@
-// File:   kme.sp
+ // File:   kme.sp
 // Author: Otstrel.ru Team
 
 #include "knifetop\include\knifetop.inc"
 
-new g_place[MAXPLAYERS+1];
+new g_place[MAXPLAYERS + 1];
 
 PrintMyPlace(client)
 {
@@ -12,34 +12,34 @@ PrintMyPlace(client)
 
 public GetPlayerPlace(client, StatsCallback:callback)
 {
-	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, _:callback);
-	WritePackCell(pack, client);
+	DataPack pack = new DataPack();
+	pack.WriteFunction(callback);
+	pack.WriteCell(client);
 	
-	new String:query[192];    
+	new String:query[192];
 	Format(query, sizeof(query), g_sql_myplace, g_score[client]);
 	SQL_TQuery(stats_db, SQL_MyPlaceCallback, query, pack);
 }
 
 public SQL_MyPlaceCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
 {
-	new Handle:pack = data;
+	DataPack pack = data;
 	ResetPack(pack);
-	new StatsCallback:callback = StatsCallback:ReadPackCell(pack);
+	new StatsCallback:callback = view_as<StatsCallback>(pack.ReadFunction());
 	new client = ReadPackCell(pack);
 	CloseHandle(pack);
-
-	if(hndl == INVALID_HANDLE)
+	
+	if (hndl == INVALID_HANDLE)
 	{
 		g_place[client] = 0;
 		return;
 	}
-    
-	if(SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
+	
+	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
 	{
 		g_place[client] = SQL_FetchInt(hndl, 0) + 1;
 	}
-
+	
 	new stats[MAX_STATS];
 	CallStatsCallback("", "", stats, callback, client, 0);
 }
@@ -50,16 +50,16 @@ public GetPlayerPlaceCallback(const String:name[], const String:steamid[], any:s
 	DrawPanelText(panel, "KnifeTop: Личная статистика");
 	DrawPanelText(panel, "---------------------------------");
 	new String:text[256];
-	if ( g_kills[client] || g_deaths[client] )
+	if (g_kills[client] || g_deaths[client])
 	{
-		Format(text, sizeof(text), "%s: %i (%i/%i) ", 
-								   g_name[client], 
-								   g_score[client],
-								   g_kills[client],
-								   g_deaths[client]
-								   );
+		Format(text, sizeof(text), "%s: %i У(%i)/С(%i) ", 
+			g_name[client], 
+			g_score[client], 
+			g_kills[client], 
+			g_deaths[client]
+			);
 		DrawPanelText(panel, text);
-		Format(text, sizeof(text), "Ваша позиция: %i of %i.", g_place[client], g_player_count);
+		Format(text, sizeof(text), "Ваша позиция: %i из %i.", g_place[client], g_player_count);
 		DrawPanelText(panel, text);
 	}
 	else

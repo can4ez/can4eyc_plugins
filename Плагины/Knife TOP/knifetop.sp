@@ -95,13 +95,13 @@ Issues
 #define MAX_STEAMID_LENGTH     128
 #define MAX_WEAPON_NAME_LENGTH 32
 
-new String:g_sql_saveplayer[]   = 
+new String:g_sql_saveplayer[] = 
 "UPDATE knifetop SET score = %i, kills = %i, deaths = %i, name = '%s', last_connect = current_timestamp WHERE steamid = '%s'";
 
-new String:g_sql_myplace[]   = 
+new String:g_sql_myplace[] = 
 "SELECT COUNT(*) as count FROM knifetop WHERE (kills or deaths) and score > %i";
 
-new String:g_sql_myRank[]   = 
+new String:g_sql_myRank[] = 
 "SELECT COUNT(*) as count FROM knifetop WHERE (kills or deaths) and score > %i";
 
 new String:g_sql_createplayer[] = 
@@ -119,8 +119,8 @@ new String:g_sql_droptable_players[] =
 new String:g_sql_playercount[] = 
 "SELECT * FROM knifetop WHERE kills OR deaths";
 
-new String:g_name[MAXPLAYERS+1][MAX_NAME_LENGTH];
-new String:g_steamid[MAXPLAYERS+1][MAX_STEAMID_LENGTH];
+new String:g_name[MAXPLAYERS + 1][MAX_NAME_LENGTH];
+new String:g_steamid[MAXPLAYERS + 1][MAX_STEAMID_LENGTH];
 
 #define IDENT_SIZE 16
 new String:g_ident[IDENT_SIZE];
@@ -129,11 +129,11 @@ new String:g_ident[IDENT_SIZE];
 #define DBTYPE_SQLITE 2
 new g_dbtype;
 
-new g_kills[MAXPLAYERS+1];
-new g_deaths[MAXPLAYERS+1];
-new g_score[MAXPLAYERS+1];
+new g_kills[MAXPLAYERS + 1];
+new g_deaths[MAXPLAYERS + 1];
+new g_score[MAXPLAYERS + 1];
 
-new bool:g_initialized[MAXPLAYERS+1];
+new bool:g_initialized[MAXPLAYERS + 1];
 
 new g_player_count;
 
@@ -159,32 +159,32 @@ new Float:PlayerAfk[MAXPLAYERS + 1][3];
 
 public Plugin:myinfo = 
 {
-	name = "KnifeTop",
-	author = "Otstrel.ru Team",
-	description = "A simple knife stats and ranking system.",
-	version = KNIFETOP_VERSION,
+	name = "KnifeTop", 
+	author = "Otstrel.ru Team", 
+	description = "A simple knife stats and ranking system.", 
+	version = KNIFETOP_VERSION, 
 	url = "http://otstrel.ru"
 }
 
 public OnPluginStart()
 {
 	g_hwarmup_timer = INVALID_HANDLE;
-
+	
 	decl String:error[256];
 	stats_db = SQL_Connect("storage-local", false, error, sizeof(error));
 	
-	if(stats_db == INVALID_HANDLE)
+	if (stats_db == INVALID_HANDLE)
 	{
 		LogError("[KnifeTop] Unable to connect to database (%s)", error);
 		return;
 	}
 	
 	SQL_ReadDriver(stats_db, g_ident, IDENT_SIZE);
-	if(strcmp(g_ident, "mysql", false) == 0)
+	if (strcmp(g_ident, "mysql", false) == 0)
 	{
 		g_dbtype = DBTYPE_MYSQL;
 	}
-	else if(strcmp(g_ident, "sqlite", false) == 0)
+	else if (strcmp(g_ident, "sqlite", false) == 0)
 	{
 		g_dbtype = DBTYPE_SQLITE;
 	}
@@ -196,19 +196,19 @@ public OnPluginStart()
 	
 	SQL_LockDatabase(stats_db);
 	
-	if((g_dbtype == DBTYPE_MYSQL && !SQL_FastQuery(stats_db, g_mysql_createtable_players)) ||
-			(g_dbtype == DBTYPE_SQLITE && !SQL_FastQuery(stats_db, g_sqlite_createtable_players)))
+	if ((g_dbtype == DBTYPE_MYSQL && !SQL_FastQuery(stats_db, g_mysql_createtable_players)) || 
+		(g_dbtype == DBTYPE_SQLITE && !SQL_FastQuery(stats_db, g_sqlite_createtable_players)))
 	{
 		LogError("[KnifeTop] Could not create players table.");
 		return;
 	}
-
+	
 	g_player_count = GetPlayerCount();
 	SQL_UnlockDatabase(stats_db);
 	
-	g_henabled = CreateConVar("sm_knifetop_enabled", "1", "Устанавливает, следует ли записывать статистику",FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_hdebug = CreateConVar("sm_knifetop_debug", "0", "Включите вывод отладки в файл журнала ошибок sourcemod.",FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_hversion = CreateConVar("sm_knifetop_version", KNIFETOP_VERSION,"KnifeTop version.", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	g_henabled = CreateConVar("sm_knifetop_enabled", "1", "Устанавливает, следует ли записывать статистику", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_hdebug = CreateConVar("sm_knifetop_debug", "0", "Включите вывод отладки в файл журнала ошибок sourcemod.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_hversion = CreateConVar("sm_knifetop_version", KNIFETOP_VERSION, "KnifeTop version.", FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
 	// KLUGE: Update version cvar if plugin updated on map change.
 	SetConVarString(g_hversion, KNIFETOP_VERSION);
 	
@@ -217,7 +217,7 @@ public OnPluginStart()
 	g_enabled = GetConVarInt(g_henabled);
 	g_debug = !!GetConVarInt(g_hdebug);
 	
-	if(g_henabled == INVALID_HANDLE || g_hversion == INVALID_HANDLE || g_hdebug == INVALID_HANDLE)
+	if (g_henabled == INVALID_HANDLE || g_hversion == INVALID_HANDLE || g_hdebug == INVALID_HANDLE)
 	{
 		LogError("[KnifeTop] Could not create knifetop cvar.");
 		return;
@@ -228,24 +228,24 @@ public OnPluginStart()
 	RegAdminCmd("sm_knifetop_reset", AdminCmd_ResetStats, ADMFLAG_CONFIG, "Сбрасывает статистику ножа.");
 	RegAdminCmd("sm_knifetop_purge", AdminCmd_Purge, ADMFLAG_CONFIG, "sm_knifetop_purge [days] - Очистка игроков, которые не подключались в течение [дней] дней.");
 	RegAdminCmd("sm_knifetop_warmup", AdminCmd_Warmup, ADMFLAG_CONFIG, "sm_knifetop_warmup [seconds] - Не считать статистику ножа в течение [секунд] секунд.");
-	RegConsoleCmd("say",      ConCmd_Say);
+	RegConsoleCmd("say", ConCmd_Say);
 	RegConsoleCmd("say_team", ConCmd_Say);
 	
 	RegPluginLibrary("knifetop");
-
+	
 	new String:steamid[MAX_STEAMID_LENGTH];
 	for (new client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientConnected(client) && IsClientAuthorized(client))
 		{
-			GetClientAuthString(client, steamid, MAX_STEAMID_LENGTH);
+			GetClientAuthId(client, AuthId_Engine, steamid, MAX_STEAMID_LENGTH); 
 			OnClientAuthorized(client, steamid);
 		}
 	}
 	
 	OffsetOrigin = FindSendPropOffs("CBaseEntity", "m_vecOrigin");
-
-	if(OffsetOrigin == -1)
+	
+	if (OffsetOrigin == -1)
 	{
 		decl String:Error[128];
 		FormatEx(Error, sizeof(Error), "FATAL ERROR OffsetOrigin [%d]", OffsetOrigin);
@@ -268,7 +268,7 @@ UnhookEvents()
 public OnClientDisconnect(userid)
 {
 	// Ignore bot disconnects
-	if(g_initialized[userid] == true)
+	if (g_initialized[userid] == true)
 	{
 		// Save the player stats
 		SavePlayer(userid);
@@ -283,7 +283,7 @@ public OnClientAuthorized(client, const String:steamid[])
 {
 	//new client = GetClientOfUserId(userid);
 	// Don't load bot stats or initialize them
-	if(!IsFakeClient(client))
+	if (!IsFakeClient(client))
 	{
 		Format(g_steamid[client], MAX_STEAMID_LENGTH, steamid);
 		GetClientName(client, g_name[client], MAX_NAME_LENGTH);
@@ -295,15 +295,15 @@ public OnClientAuthorized(client, const String:steamid[])
 
 public EnabledCallback(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-	if ( strcmp(newValue, "0") == 0 )
+	if (strcmp(newValue, "0") == 0)
 	{
-		if ( g_enabled == 1 )
+		if (g_enabled == 1)
 		{
 			g_enabled = 0;
 			UnhookEvents();
 		}
 	}
-	else if ( g_enabled == 0 )
+	else if (g_enabled == 0)
 	{
 		g_enabled = 1;
 		HookEvents();
@@ -312,7 +312,7 @@ public EnabledCallback(Handle:convar, const String:oldValue[], const String:newV
 
 public DebugCallback(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-	if ( strcmp(newValue, "0") == 0 )
+	if (strcmp(newValue, "0") == 0)
 	{
 		g_debug = false;
 	}
@@ -324,32 +324,32 @@ public DebugCallback(Handle:convar, const String:oldValue[], const String:newVal
 
 public Action:ConCmd_Say(userid, args)
 {
-	if(!userid || g_enabled == 0)
-	return Plugin_Continue;
+	if (!userid || g_enabled == 0)
+		return Plugin_Continue;
 	
-	decl String:text[192];      // from rockthevote.sp
-	if(!GetCmdArgString(text, sizeof(text)))
-	return Plugin_Continue;
+	decl String:text[192]; // from rockthevote.sp
+	if (!GetCmdArgString(text, sizeof(text)))
+		return Plugin_Continue;
 	
 	new startidx = 0;
 	
 	// Strip quotes from argument
-	if(text[strlen(text)-1] == '"')
+	if (text[strlen(text) - 1] == '"')
 	{
-		text[strlen(text)-1] = '\0';
+		text[strlen(text) - 1] = '\0';
 		startidx = 1;
 	}
 	
-	if( strcmp(text[startidx], "!ktop", false) == 0 || strcmp(text[startidx], "ktop", false) == 0)
+	if (strcmp(text[startidx], "!ktop", false) == 0 || strcmp(text[startidx], "ktop", false) == 0)
 	{
 		PrintTop(userid);
-	return Plugin_Continue;
+		return Plugin_Continue;
 	}
-
-	if(strcmp(text[startidx], "!kbot", false) == 0 || strcmp(text[startidx], "kbot", false) == 0)
+	
+	if (strcmp(text[startidx], "!kbot", false) == 0 || strcmp(text[startidx], "kbot", false) == 0)
 	{
 		new start = 0;
-		if ( g_player_count < 11 )
+		if (g_player_count < 11)
 		{
 			start = 1;
 		}
@@ -358,21 +358,21 @@ public Action:ConCmd_Say(userid, args)
 			start = g_player_count - 9;
 		}
 		PrintTop(userid, start);
-	return Plugin_Continue;
+		return Plugin_Continue;
 	}
 	
-	if(strcmp(text[startidx], "!kme", false) == 0 || strcmp(text[startidx], "kme", false) == 0)
+	if (strcmp(text[startidx], "!kme", false) == 0 || strcmp(text[startidx], "kme", false) == 0)
 	{
 		PrintMyPlace(userid);
-	return Plugin_Continue;
+		return Plugin_Continue;
 	}
 	
-	if(strcmp(text[startidx], "!krank", false) == 0 || strcmp(text[startidx], "krank", false) == 0)
+	if (strcmp(text[startidx], "!krank", false) == 0 || strcmp(text[startidx], "krank", false) == 0)
 	{
 		PrintMyRank(userid);
-	return Plugin_Continue;
+		return Plugin_Continue;
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -380,16 +380,16 @@ public LoadPlayerCallback(const String:name[], const String:steamid[], any:stats
 {
 	new client = data;
 	
-	if(error == ERROR_PLAYER_NOT_FOUND)
+	if (error == ERROR_PLAYER_NOT_FOUND)
 	{
 		CreatePlayer(client, g_steamid[client]);
 		return;
 	}
 	
 	Format(g_name[client], MAX_NAME_LENGTH, name);
-	g_kills[client]       = stats[STAT_KILLS];
-	g_deaths[client]      = stats[STAT_DEATHS];
-	g_score[client]       = stats[STAT_SCORE];
+	g_kills[client] = stats[STAT_KILLS];
+	g_deaths[client] = stats[STAT_DEATHS];
+	g_score[client] = stats[STAT_SCORE];
 	
 	g_initialized[client] = true;
 }
@@ -406,34 +406,34 @@ public Action:AdminCmd_Purge(client, args)
 	Trace("Purge command");
 	new argCount = GetCmdArgs();
 	
-	if(argCount != 1)
+	if (argCount != 1)
 	{
 		PrintToConsole(client, "KnifeTop: Недопустимое количество аргументов для команды 'sm_knifetop_purge'");
 		return Plugin_Handled;
 	}
 	
 	decl String:svDays[192];
-	if(!GetCmdArg(1, svDays, 192))
+	if (!GetCmdArg(1, svDays, 192))
 	{
 		PrintToConsole(client, "KnifeTop: Недопустимый аргумент для команды sm_knifetop_purge.");
 		return Plugin_Handled;
 	}
 	
 	new days = StringToInt(svDays);
-	if(days <= 0)
+	if (days <= 0)
 	{
 		PrintToConsole(client, "KnifeTop: Недопустимое количество дней.");
 		return Plugin_Handled;
 	}
-
+	
 	decl String:query[128];
 	
 	
-	switch(g_dbtype)
+	switch (g_dbtype)
 	{
-	case DBTYPE_MYSQL: 
+		case DBTYPE_MYSQL:
 		Format(query, 128, "DELETE FROM knifetop WHERE last_connect < current_timestamp - interval %i day;", days);
-	case DBTYPE_SQLITE: 
+		case DBTYPE_SQLITE:
 		Format(query, 128, "DELETE FROM knifetop WHERE last_connect < datetime('now', '-%i days');", days);
 	}
 	
@@ -447,14 +447,14 @@ public Action:AdminCmd_Warmup(client, args)
 	Trace("Warmup command");
 	new argCount = GetCmdArgs();
 	
-	if(argCount != 1)
+	if (argCount != 1)
 	{
 		PrintToConsole(client, "KnifeTop: Недопустимое количество аргументов для команды 'sm_knifetop_warmup'");
 		return Plugin_Handled;
 	}
 	
 	decl String:svSeconds[192];
-	if(!GetCmdArg(1, svSeconds, 192))
+	if (!GetCmdArg(1, svSeconds, 192))
 	{
 		PrintToConsole(client, "KnifeTop: Недопустимые аргументы для sm_knifetop_warmup.");
 		return Plugin_Handled;
@@ -462,13 +462,13 @@ public Action:AdminCmd_Warmup(client, args)
 	
 	new Float:seconds = StringToFloat(svSeconds);
 	
-	if ( g_hwarmup_timer && ( g_hwarmup_timer != INVALID_HANDLE) )
+	if (g_hwarmup_timer && (g_hwarmup_timer != INVALID_HANDLE))
 	{
 		CloseHandle(g_hwarmup_timer);
 		g_hwarmup_timer = INVALID_HANDLE;
-	}        
-
-	if(seconds <= 0)
+	}
+	
+	if (seconds <= 0)
 	{
 		g_iswarmup = false;
 		PrintToConsole(client, "KnifeTop: Разминка отключена.");
@@ -477,10 +477,10 @@ public Action:AdminCmd_Warmup(client, args)
 	else
 	{
 		g_iswarmup = true;
-		g_hwarmup_timer = CreateTimer(seconds, Timer_DisableWarmup); 
+		g_hwarmup_timer = CreateTimer(seconds, Timer_DisableWarmup);
 		PrintToConsole(client, "KnifeTop: Разминка включена в %.0f секунд.", seconds);
 		return Plugin_Handled;
-	}    
+	}
 }
 
 public Action:Timer_DisableWarmup(Handle:timer)
@@ -493,7 +493,7 @@ public Action:Timer_DisableWarmup(Handle:timer)
 public SQL_PurgeCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
 {
 	Trace("Purge callback");
-	if(hndl == INVALID_HANDLE)
+	if (hndl == INVALID_HANDLE)
 	{
 		LogError("SQL_PurgeCallback: Invalid query (%s).", error);
 	}
@@ -507,7 +507,7 @@ public SQL_PurgeCallback(Handle:owner, Handle:hndl, const String:error[], any:da
 GetPlayerCount()
 {
 	new Handle:hquery = SQL_Query(stats_db, g_sql_playercount);
-	if(hquery == INVALID_HANDLE)
+	if (hquery == INVALID_HANDLE)
 	{
 		LogError("[KnifeTop] Error getting player count.");
 		return 0;
@@ -522,8 +522,8 @@ SavePlayer(const userid)
 {
 	Trace("Saving player...");
 	Trace(g_steamid[userid]);
-	if(stats_db == INVALID_HANDLE || g_enabled == 0)
-	return false;
+	if (stats_db == INVALID_HANDLE || g_enabled == 0)
+		return false;
 	
 	GetClientName(userid, g_name[userid], MAX_NAME_LENGTH);
 	
@@ -534,10 +534,10 @@ SavePlayer(const userid)
 	// save player here
 	decl String:query[255];
 	Format(query, sizeof(query), g_sql_saveplayer, g_score[userid], 
-	g_kills[userid],
-	g_deaths[userid], 
-	safe_name, 
-	g_steamid[userid]);
+		g_kills[userid], 
+		g_deaths[userid], 
+		safe_name, 
+		g_steamid[userid]);
 	SQL_TQuery(stats_db, SQL_SavePlayerCallback, query);
 	Trace("Player saved");
 	return 0;
@@ -545,8 +545,8 @@ SavePlayer(const userid)
 
 public SQL_SavePlayerCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
 {
-	if(hndl == INVALID_HANDLE)
-	LogError("[KnifeTop] Error saving player (%s)", error);
+	if (hndl == INVALID_HANDLE)
+		LogError("[KnifeTop] Error saving player (%s)", error);
 }
 
 CreatePlayer(const userid, const String:steamid[])
@@ -556,7 +556,7 @@ CreatePlayer(const userid, const String:steamid[])
 	
 	SQL_QuoteString(stats_db, g_name[userid], safe_name, sizeof(safe_name));
 	Format(query, sizeof(query), g_sql_createplayer, steamid, safe_name);
-
+	
 	SQL_TQuery(stats_db, SQL_CreatePlayerCallback, query, userid);
 }
 
@@ -564,16 +564,16 @@ public SQL_CreatePlayerCallback(Handle:owner, Handle:hndl, const String:error[],
 {
 	new client = data;
 	
-	if(hndl != INVALID_HANDLE)
+	if (hndl != INVALID_HANDLE)
 	{
-		g_kills[client]       = 0;
-		g_deaths[client]      = 0;
-		g_score[client]       = 0;
+		g_kills[client] = 0;
+		g_deaths[client] = 0;
+		g_score[client] = 0;
 		
 		g_initialized[client] = true;
 	}
 	else
-	LogError("[KnifeTop] SQL_CreatePlayerCallback failure: %s", error);
+		LogError("[KnifeTop] SQL_CreatePlayerCallback failure: %s", error);
 }
 
 public Trace(const String:text[])
@@ -587,12 +587,12 @@ public Trace(const String:text[])
 public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-
-	if(!client || IsFakeClient(client))
+	
+	if (!client || IsFakeClient(client))
 	{
 		return;
 	}
-
+	
 	GetEntDataVector(client, OffsetOrigin, PlayerAfk[client]);
 }
 
@@ -600,6 +600,6 @@ public isPlayerAfk(client)
 {
 	decl Float:Origin[3];
 	GetEntDataVector(client, OffsetOrigin, Origin);
-
+	
 	return PlayerAfk[client][0] == Origin[0] && PlayerAfk[client][1] == Origin[1];
 }
