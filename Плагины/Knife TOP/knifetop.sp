@@ -138,6 +138,8 @@ new bool:g_initialized[MAXPLAYERS + 1];
 new g_player_count;
 
 new Handle:g_henabled;
+new Handle:g_hHealth;
+new g_health;
 new Handle:g_hversion;
 new g_enabled;
 
@@ -206,18 +208,21 @@ public OnPluginStart()
 	g_player_count = GetPlayerCount();
 	SQL_UnlockDatabase(stats_db);
 	
+	g_hHealth = CreateConVar("sm_knifetop_health", "10", "Устанавливает, сколько HP получит убийца", FCVAR_NOTIFY, true, 0.0, false);
 	g_henabled = CreateConVar("sm_knifetop_enabled", "1", "Устанавливает, следует ли записывать статистику", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_hdebug = CreateConVar("sm_knifetop_debug", "0", "Включите вывод отладки в файл журнала ошибок sourcemod.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_hversion = CreateConVar("sm_knifetop_version", KNIFETOP_VERSION, "KnifeTop version.", FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
+	g_hversion = CreateConVar("sm_knifetop_version", KNIFETOP_VERSION, "KnifeTop version.", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
 	// KLUGE: Update version cvar if plugin updated on map change.
 	SetConVarString(g_hversion, KNIFETOP_VERSION);
 	
+	HookConVarChange(g_hHealth, HealthCallback);
 	HookConVarChange(g_henabled, EnabledCallback);
 	HookConVarChange(g_hdebug, DebugCallback);
+	g_health = GetConVarInt(g_hHealth);
 	g_enabled = GetConVarInt(g_henabled);
 	g_debug = !!GetConVarInt(g_hdebug);
 	
-	if (g_henabled == INVALID_HANDLE || g_hversion == INVALID_HANDLE || g_hdebug == INVALID_HANDLE)
+	if (g_hHealth == INVALID_HANDLE || g_henabled == INVALID_HANDLE || g_hversion == INVALID_HANDLE || g_hdebug == INVALID_HANDLE)
 	{
 		LogError("[KnifeTop] Could not create knifetop cvar.");
 		return;
@@ -233,17 +238,18 @@ public OnPluginStart()
 	
 	RegPluginLibrary("knifetop");
 	
-	new String:steamid[MAX_STEAMID_LENGTH];
+	//new String:steamid[MAX_STEAMID_LENGTH];
 	for (new client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientConnected(client) && IsClientAuthorized(client))
 		{
-			GetClientAuthId(client, AuthId_Engine, steamid, MAX_STEAMID_LENGTH); 
-			OnClientAuthorized(client, steamid);
+			//GetClientAuthId(client, AuthId_Engine, steamid, MAX_STEAMID_LENGTH); 
+			//OnClientAuthorized(client, steamid);
+			OnClientPostAdminCheck(client);
 		}
 	}
 	
-	OffsetOrigin = FindSendPropOffs("CBaseEntity", "m_vecOrigin");
+	OffsetOrigin = FindSendPropInfo("CBaseEntity", "m_vecOrigin");
 	
 	if (OffsetOrigin == -1)
 	{
@@ -279,20 +285,26 @@ public OnClientDisconnect(userid)
 	}
 }
 
-public OnClientAuthorized(client, const String:steamid[])
+//public OnClientAuthorized(client, const String:steamid[])
+public OnClientPostAdminCheck(client)
 {
 	//new client = GetClientOfUserId(userid);
 	// Don't load bot stats or initialize them
 	if (!IsFakeClient(client))
 	{
-		Format(g_steamid[client], MAX_STEAMID_LENGTH, steamid);
+		GetClientAuthId(client, AuthId_Engine, g_steamid[client], MAX_STEAMID_LENGTH);
+		//Format(g_steamid[client], MAX_STEAMID_LENGTH, steamid);
 		GetClientName(client, g_name[client], MAX_NAME_LENGTH);
-		GetPlayerBySteamId(steamid, LoadPlayerCallback, client);
+		GetPlayerBySteamId(g_steamid[client], LoadPlayerCallback, client);
 		Trace("Client authorized...");
 		Trace(g_steamid[client]);
 	}
 }
 
+public HealthCallback(Handle:convar, const String:oldValue[], const String:newValue[])
+{
+	g_health = GetConVarInt(convar);
+}
 public EnabledCallback(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	if (strcmp(newValue, "0") == 0)
@@ -528,8 +540,16 @@ SavePlayer(const userid)
 	GetClientName(userid, g_name[userid], MAX_NAME_LENGTH);
 	
 	// Make SQL-safe
-	new String:safe_name[MAX_NAME_LENGTH];
+	new String:safe_name[MAX_NAME_LENGTH * 2];
+	if (g_name[userid][0] == '\0') {
+		GetClientName(userid, g_name[userid], MAX_NAME_LENGTH);
+	}
 	SQL_QuoteString(stats_db, g_name[userid], safe_name, sizeof(safe_name));
+	
+	Trace("g_name ... ");
+	Trace(g_name[userid]);
+	Trace("safe_name ... ");
+	Trace(safe_name);
 	
 	// save player here
 	decl String:query[255];
@@ -555,6 +575,8 @@ CreatePlayer(const userid, const String:steamid[])
 	new String:safe_name[MAX_NAME_LENGTH];
 	
 	SQL_QuoteString(stats_db, g_name[userid], safe_name, sizeof(safe_name));
+	LogMessage("g_name: '%s'", g_name[userid]);
+	LogMessage("safe_name: '%s'", safe_name);
 	Format(query, sizeof(query), g_sql_createplayer, steamid, safe_name);
 	
 	SQL_TQuery(stats_db, SQL_CreatePlayerCallback, query, userid);

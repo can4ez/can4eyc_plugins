@@ -55,6 +55,8 @@ public Event_CSS_PlayerDeath(Handle:event, const String:name[], bool:dontBroadca
                 g_player_count++;
             }
             
+            SetEntityHealth(attacker, GetClientHealth(attacker) + g_health);
+            
             g_kills[attacker]++;
             g_deaths[userid]++;
             

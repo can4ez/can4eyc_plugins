@@ -4,7 +4,7 @@ new String:g_sql_loadplayer[] =
 "SELECT name, steamid, score, kills, deaths FROM knifetop WHERE steamid = '%s'";
 
 new String:g_sql_top[] = 
-"SELECT name, steamid, score, kills, deaths FROM knifetop WHERE kills OR deaths ORDER BY score DESC LIMIT %i OFFSET %i";
+"SELECT name, steamid, score, kills, deaths FROM knifetop WHERE (kills OR deaths) AND (name != '') ORDER BY score DESC LIMIT %i OFFSET %i";
 
 public Native_KnifeTop_GetTopPlayers(Handle:plugin, numParams)
 {
@@ -20,7 +20,7 @@ public Native_KnifeTop_GetTopPlayers(Handle:plugin, numParams)
 	
 	new String:query[192];
 	
-	Format(query, sizeof(query), g_sql_top, count, rank - 1);
+	Format(query, sizeof(query), g_sql_top, count, rank); 
 	SQL_TQuery(stats_db, SQL_TopCallback, query, pack);
 }
 
